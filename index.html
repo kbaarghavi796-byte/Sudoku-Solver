@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Sudoku Solver</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+
+    margin:0;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:#f3f4f6;
+
+    font-family:Arial,sans-serif;
+
+    transition:0.3s;
+
+}
+
+
+/* DARK MODE */
+
+body.dark{
+
+    background:#111827;
+
+}
+
+
+
+
+
+
+
+
+body.dark .container{
+
+    background:#1f2937;
+
+    box-shadow:
+    0 10px 30px rgba(0,0,0,0.4);
+
+}
+
+
+
+
+.top-bar{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    margin-bottom:10px;
+
+}
+
+
+
+.mode-toggle{
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:20px;
+
+    cursor:pointer;
+
+    background:#374151;
+
+    color:white;
+
+    font-size:14px;
+
+}
+
+
+
+h1{
+
+    text-align:center;
+
+    font-size:38px;
+
+    margin-bottom:30px;
+
+    color:#111827;
+
+}
+
+
+
+body.dark h1{
+
+    color:white;
+
+}
+
+
+
+
+
+.game-area{
+
+    display:flex;
+
+    gap:40px;
+
+    align-items:center;
+
+}
+
+
+
+
+
+.sudoku{
+
+
+    display:grid;
+
+    grid-template-columns:repeat(9,50px);
+
+
+    border:3px solid #111827;
+
+    border-radius:8px;
+
+    overflow:hidden;
+
+}
+
+
+
+
+body.dark .sudoku{
+
+    border-color:white;
+
+}
+
+
+
+
+.cell{
+
+    width:50px;
+
+    height:50px;
+
+
+    background:#ffffff;
+
+    color:#111827;
+
+
+    border:1px solid #9ca3af;
+
+
+    text-align:center;
+
+
+    font-size:22px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+    outline:none;
+
+
+}
+
+
+
+
+body.dark .cell{
+
+    background:#374151;
+
+    color:white;
+
+    border-color:#6b7280;
+
+}
+
+
+
+
+
+.cell:nth-child(3n){
+
+    border-right:3px solid #111827;
+
+}
+
+
+
+body.dark .cell:nth-child(3n){
+
+    border-right:3px solid white;
+
+}
+
+
+
+
+.cell:nth-child(n+19):nth-child(-n+27),
+.cell:nth-child(n+46):nth-child(-n+54){
+
+    border-bottom:3px solid #111827;
+
+}
+
+
+
+body.dark .cell:nth-child(n+19):nth-child(-n+27),
+body.dark .cell:nth-child(n+46):nth-child(-n+54){
+
+    border-bottom:3px solid white;
+
+}
+
+
+
+
+.cell:focus{
+
+    background:#dbeafe;
+
+}
+
+
+
+
+body.dark .cell:focus{
+
+    background:#4b5563;
+
+}
+
+
+
+
+
+.controls{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+}
+
+
+
+
+
+.numbers{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,55px);
+
+    gap:12px;
+
+}
+
+
+
+
+.numbers button{
+
+
+    width:55px;
+
+    height:55px;
+
+
+    border:none;
+
+
+    border-radius:10px;
+
+
+    background:#2563eb;
+
+
+    color:white;
+
+
+    font-size:22px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+.numbers button:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+
+
+
+
+.clear,
+.solve{
+
+
+    margin-top:15px;
+
+
+    width:140px;
+
+
+    height:45px;
+
+
+    border:none;
+
+
+    border-radius:10px;
+
+
+    color:white;
+
+
+    font-size:18px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+.clear{
+
+    background:#ef4444;
+
+}
+
+
+
+.solve{
+
+    background:#22c55e;
+
+}
+
+
+
+.clear:hover{
+
+    background:#dc2626;
+
+}
+
+
+
+.solve:hover{
+
+    background:#16a34a;
+
+}
+
+
+
+
+
+@media(max-width:900px){
+
+
+.game-area{
+
+    flex-direction:column;
+
+}
+
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="top-bar">
+
+<button class="mode-toggle" onclick="toggleMode()">
+🌙 Dark Mode
+</button>
+
+</div>
+
+
+
+<h1>Sudoku Solver</h1>
+
+
+
+<div class="game-area">
+
+
+
+<div class="sudoku">
+
+
+{% for row in board %}
+
+{% for cell in row %}
+
+
+<input class="cell"
+type="text"
+maxlength="1"
+readonly
+value="{% if cell != 0 %}{{cell}}{% endif %}">
+
+
+{% endfor %}
+
+{% endfor %}
+
+
+</div>
+
+
+
+
+
+<div class="controls">
+
+
+<div class="numbers">
+
+
+<button onclick="insertNumber(1)">1</button>
+
+<button onclick="insertNumber(2)">2</button>
+
+<button onclick="insertNumber(3)">3</button>
+
+<button onclick="insertNumber(4)">4</button>
+
+<button onclick="insertNumber(5)">5</button>
+
+<button onclick="insertNumber(6)">6</button>
+
+<button onclick="insertNumber(7)">7</button>
+
+<button onclick="insertNumber(8)">8</button>
+
+<button onclick="insertNumber(9)">9</button>
+
+
+</div>
+
+
+<button class="clear" onclick="clearBoard()">
+Clear
+</button>
+
+
+<button class="solve" onclick="solveSudoku()">
+Solve
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+<script>
+
+
+function toggleMode(){
+
+    document.body.classList.toggle("dark");
+
+
+    let button=document.querySelector(".mode-toggle");
+
+
+    if(document.body.classList.contains("dark")){
+
+        button.innerHTML="☀️ Light Mode";
+
+    }
+
+    else{
+
+        button.innerHTML="🌙 Dark Mode";
+
+    }
+
+}
+
+
+
+
+
+let selectedCell=null;
+
+
+let cells=document.querySelectorAll(".cell");
+
+
+
+
+
+cells.forEach(cell=>{
+
+
+cell.addEventListener("click",()=>{
+
+
+    cells.forEach(c=>{
+
+        c.style.background="";
+
+    });
+
+
+    selectedCell=cell;
+
+
+    cell.style.background="#bfdbfe";
+
+
+});
+});
+
+
+
+
+
+
+
+
+
+function insertNumber(num){
+
+
+
+if(selectedCell){
+
+
+let index=[...cells].indexOf(selectedCell);
+
+
+let row=Math.floor(index/9);
+
+let col=index%9;
+
+
+
+if(isValidMove(row,col,num)){
+
+
+selectedCell.value=num;
+
+
+selectedCell.style.background="";
+
+}
+
+else{
+
+
+alert("Invalid Move! Number already exists");
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function isValidMove(row,col,num){
+
+
+
+for(let j=0;j<9;j++){
+
+
+if(cells[row*9+j].value==num && j!=col)
+
+return false;
+
+
+}
+
+
+
+
+
+for(let i=0;i<9;i++){
+
+
+if(cells[i*9+col].value==num && i!=row)
+
+return false;
+
+
+}
+
+
+
+
+
+
+
+let boxRow=Math.floor(row/3)*3;
+
+let boxCol=Math.floor(col/3)*3;
+
+
+
+
+
+for(let i=boxRow;i<boxRow+3;i++){
+
+
+for(let j=boxCol;j<boxCol+3;j++){
+
+
+if(
+cells[i*9+j].value==num &&
+!(i==row && j==col)
+)
+
+return false;
+
+
+
+}
+
+
+
+}
+
+
+
+return true;
+
+
+}
+
+
+
+
+
+
+
+
+
+function clearBoard(){
+
+
+    cells.forEach(cell=>{
+
+
+        cell.value="";
+
+
+        cell.style.background="";
+
+
+    });
+
+
+    selectedCell=null;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function solveSudoku(){
+
+
+
+let board=[];
+
+
+
+for(let i=0;i<9;i++){
+
+
+let row=[];
+
+
+
+for(let j=0;j<9;j++){
+
+
+let value=cells[i*9+j].value;
+
+
+
+row.push(
+value=="" ? 0 : Number(value)
+);
+
+
+
+}
+
+
+
+board.push(row);
+
+
+}
+
+
+
+
+
+
+
+
+
+fetch("/solve/",{
+
+
+method:"POST",
+
+
+
+headers:{
+
+
+"Content-Type":"application/json",
+
+
+"X-CSRFToken":getCookie("csrftoken")
+
+
+},
+
+
+
+
+
+body:JSON.stringify({
+
+
+board:board
+
+
+})
+
+
+})
+
+
+
+
+
+.then(response=>response.json())
+
+
+
+.then(data=>{
+
+
+
+if(data.solution){
+
+
+
+for(let i=0;i<9;i++){
+
+
+for(let j=0;j<9;j++){
+
+
+
+cells[i*9+j].value=data.solution[i][j];
+
+
+
+}
+
+
+}
+
+
+
+}
+
+else{
+
+
+alert("No solution exists");
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function getCookie(name){
+
+
+
+let cookieValue=null;
+
+
+
+let cookies=document.cookie.split(";");
+
+
+
+
+
+for(let cookie of cookies){
+
+
+cookie=cookie.trim();
+
+
+
+
+if(cookie.startsWith(name+"=")){
+
+
+cookieValue=cookie.substring(name.length+1);
+
+
+}
+
+
+}
+
+
+
+return cookieValue;
+
+
+}
+
+
+
+
+
+</script>
+
+
+</body>
+
+</html>
